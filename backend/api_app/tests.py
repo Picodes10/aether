@@ -1,22 +1,42 @@
 from django.test import TestCase
-from api_app.models import QuizAttempt, Leaderboard
+from rest_framework import status
+from rest_framework.test import APIClient
+from api_app.models import Quiz, QuizAttempt
 from django.contrib.auth.models import User
 
-class QuizAttemptModelTest(TestCase):
+class QuizAttemptViewTest(TestCase):
     def setUp(self):
+        self.client = APIClient()
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.quiz_attempt = QuizAttempt.objects.create(user=self.user, quiz_id=1, score=85)
+        self.quiz = Quiz.objects.create(title='Sample Quiz', correct_answers={"q1": "a", "q2": "b"})
+        self.client.force_authenticate(user=self.user)
 
-    def test_quiz_attempt_creation(self):
-        self.assertEqual(self.quiz_attempt.user.username, 'testuser')
-        self.assertEqual(self.quiz_attempt.score, 85)
+    def test_submit_quiz_attempt(self):
+        response = self.client.post('/api/submit-quiz/', {
+            'quiz': self.quiz.id,
+            'answers': {
+                'q1': 'a',
+                'q2': 'b'
+            }
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['score'], 2)
 
-class LeaderboardModelTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.leaderboard_entry = Leaderboard.objects.create(user=self.user, quiz_id=1, rank=1, score=100)
+    def test_submit_quiz_attempt_invalid_answers(self):
+        response = self.client.post('/api/submit-quiz/', {
+            'quiz': self.quiz.id,
+            'answers': {
+                'q1': 'c',
+                'q2': 'b'
+            }
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['score'], 1)
 
-    def test_leaderboard_creation(self):
-        self.assertEqual(self.leaderboard_entry.user.username, 'testuser')
-        self.assertEqual(self.leaderboard_entry.rank, 1)
-        self.assertEqual(self.leaderboard_entry.score, 100)
+    def test_submit_quiz_attempt_no_answers(self):
+        response = self.client.post('/api/submit-quiz/', {
+            'quiz': self.quiz.id,
+            'answers': {}
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['score'], 0)

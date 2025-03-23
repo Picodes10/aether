@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 class Quiz(models.Model):
     # Assuming a Quiz model exists with necessary fields
     title = models.CharField(max_length=255)
-    # Add other fields as necessary
+
 
 class QuizAttempt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -11,7 +11,8 @@ class QuizAttemptView(APIView):
             # Assuming the correct answers are stored in the Quiz model
             quiz = serializer.validated_data['quiz']
             user_answers = request.data.get('answers', {})
-            correct_answers = quiz.correct_answers  # Assuming this field exists
+            correct_answers = quiz.correct_answers  # Retrieve correct answers from the Quiz model
+
 
             # Calculate score
             score = sum(1 for question, answer in user_answers.items() if correct_answers.get(question) == answer)
