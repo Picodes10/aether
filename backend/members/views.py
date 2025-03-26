@@ -1,7 +1,8 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 
-# Create your views here.
-from django.http import HttpResponse
+def home(request):
+    return HttpResponse("Welcome to the Members App!")  # New home view
 
 def members(request):
-    return HttpResponse("Hello world!")
+    return render(request, 'index.html')  # Render the existing index.html template
